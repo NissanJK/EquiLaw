@@ -10,6 +10,10 @@ Equilaw is a single-page application built with modern web technologies like Rea
 - **Tailwind CSS**: Streamlined, utility-first styling.
 - **Toastify**: Customizable and responsive notifications.
 
+## Live Demo
+
+🌐 [Live Site](https://equilaw-v2.netlify.app/)
+
 ## Getting Started
 
 ### Prerequisites
@@ -19,7 +23,7 @@ Equilaw is a single-page application built with modern web technologies like Rea
 ### Steps to Set Up the Project
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/equilaw.git
+   git clone https://github.com/NissanJK/EquiLaw.git
    cd equilaw
    ```
 
