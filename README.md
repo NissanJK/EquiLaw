@@ -51,14 +51,25 @@ Equilaw is a single-page application built with modern web technologies like Rea
 
 ```
 Equilaw/
-├── src/                     # Source code
+├── dist/                    # Production build files
+├── node_modules/            # Installed dependencies
+├── public/                  # Static assets (e.g., images, icons)
+├── src/                     # Main source code
+│   ├── assets/              # Images, fonts, and other assets
 │   ├── components/          # Reusable React components
-│   ├── pages/               # Page components for routing
+│   ├── layout/              # Layout components (e.g., header, footer)
+│   ├── pages/               # Page-level components for routing
+│   ├── utils/               # Utility functions and helpers
+│   ├── App.css              # Global app-specific styles
 │   ├── App.jsx              # Main application component
-│   ├── main.jsx             # Application entry point
-├── public/                  # Static assets like images
-├── dist/                    # Generated build files (index.html, JS, and CSS bundles)
-├── package.json             # Dependencies and scripts
+│   ├── index.css            # Global CSS and Tailwind imports
+│   ├── main.jsx             # Entry point for the React app
+├── .gitignore               # Git ignore file
+├── eslint.config.js         # ESLint configuration
+├── index.html               # Entry HTML file for the app
+├── package-lock.json        # Dependency lock file
+├── package.json             # Project dependencies and scripts
+├── postcss.config.js        # PostCSS configuration
 ├── tailwind.config.js       # Tailwind CSS configuration
 ├── vite.config.js           # Vite configuration
 └── README.md                # Project documentation
