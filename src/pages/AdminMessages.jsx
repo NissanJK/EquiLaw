@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { IoArrowBackCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import { collection, onSnapshot, updateDoc, doc, orderBy,query } from 'firebase/firestore';
+import { collection, onSnapshot, updateDoc, doc, orderBy, query, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../utils/firebase.config';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -13,7 +13,6 @@ const AdminMessages = () => {
     const [adminReply, setAdminReply] = useState('');
     const navigate = useNavigate();
 
-    // Fetch all messages
     useEffect(() => {
         const messagesQuery = query(collection(db, 'contactMessages'), orderBy('timestamp', 'asc'));
         const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
@@ -41,6 +40,28 @@ const AdminMessages = () => {
         }
     };
 
+    const handleClearMessages = async () => {
+        try {
+            if (!window.confirm('Are you sure you want to delete all messages? This action cannot be undone.')) {
+                return;
+            }
+
+            const querySnapshot = await getDocs(collection(db, 'contactMessages'));
+            const batch = writeBatch(db);
+
+            querySnapshot.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+
+            await batch.commit();
+            setMessages([]);
+            toast.success('All messages cleared successfully!');
+        } catch (error) {
+            console.error('Error clearing messages:', error);
+            toast.error('Failed to clear messages. Please try again.');
+        }
+    };
+
     return (
         <div className="p-5 min-h-screen bg-base-200">
             <Helmet>
@@ -51,7 +72,6 @@ const AdminMessages = () => {
             </button>
             <h1 className="text-2xl font-bold mb-5">User Messages</h1>
 
-            {/* Messages List */}
             <div className="flex flex-col gap-4">
                 {messages.map((msg) => (
                     <div
@@ -71,7 +91,6 @@ const AdminMessages = () => {
                 ))}
             </div>
 
-            {/* Reply Section */}
             {selectedMessage && (
                 <div className="mt-5 p-4 border-t">
                     <h2 className="text-xl font-bold mb-3">Reply to: {selectedMessage.email}</h2>
@@ -86,6 +105,10 @@ const AdminMessages = () => {
                     </button>
                 </div>
             )}
+
+            <button className="btn btn-danger w-full mt-5" onClick={handleClearMessages}>
+                Clear All Messages
+            </button>
 
             <ToastContainer />
         </div>
