@@ -14,56 +14,85 @@ import AdminLayout from './layout/AdminLayout';
 import UserLayout from './layout/UserLayout';
 import { HelmetProvider } from 'react-helmet-async';
 import AdminMessages from './pages/AdminMessages';
+import { auth } from './utils/firebase.config';
+import { onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+
+const db = getFirestore();
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const userAuthStatus = localStorage.getItem('isAuthenticated');
-    const adminAuthStatus = localStorage.getItem('isAdminAuthenticated');
-    setIsAuthenticated(userAuthStatus === 'true');
-    setIsAdminAuthenticated(adminAuthStatus === 'true');
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          // Fetch role from Firestore
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          const userData = userDoc.data();
+
+          if (userData?.role === 'admin') {
+            setIsAdminAuthenticated(true);
+            setIsUserAuthenticated(false);
+          } else if (userData?.role === 'user') {
+            setIsUserAuthenticated(true);
+            setIsAdminAuthenticated(false);
+          } else {
+            setIsUserAuthenticated(false);
+            setIsAdminAuthenticated(false);
+          }
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+        }
+      } else {
+        setIsUserAuthenticated(false);
+        setIsAdminAuthenticated(false);
+      }
+
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-    localStorage.setItem('isAuthenticated', 'true');
-  };
-
-  const handleAdminLoginSuccess = () => {
-    setIsAdminAuthenticated(true);
-    localStorage.setItem('isAdminAuthenticated', 'true');
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('isAuthenticated');
-  };
-
-  const handleAdminLogout = () => {
-    setIsAdminAuthenticated(false);
-    localStorage.removeItem('isAdminAuthenticated');
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-base-200">
+        {/* Skeleton Spinner */}
+        <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <HelmetProvider>
       <Router>
         <Routes>
           {/* User Layout */}
-          <Route element={<UserLayout isAuthenticated={isAuthenticated} onLogout={handleLogout} />}>
+          <Route element={<UserLayout isAuthenticated={isUserAuthenticated} />}>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login onLoginSuccess={handleLoginSuccess} />} />
+            <Route
+              path="/login"
+              element={isUserAuthenticated ? <Navigate to="/" /> : <Login />}
+            />
             <Route path="/cases" element={<Cases />} />
             <Route path="/blog" element={<Blog />} />
-            <Route path="/inbox" element={isAuthenticated ? <Inbox /> : <Navigate to="/login" />} />
-            <Route path="/contact" element={isAuthenticated ? <ContactUs /> : <Navigate to="/login" />} />
+            <Route path="/inbox" element={isUserAuthenticated ? <Inbox /> : <Navigate to="/login" />} />
+            <Route path="/contact" element={isUserAuthenticated ? <ContactUs /> : <Navigate to="/login" />} />
           </Route>
 
           {/* Admin Layout */}
-          <Route element={<AdminLayout onLogout={handleAdminLogout} />}>
-            <Route path="/admin" element={isAdminAuthenticated ? <AdminPanel onLogout={handleAdminLogout} /> : <Navigate to="/admin/login" />} />
-            <Route path="/admin/login" element={isAdminAuthenticated ? <Navigate to="/admin" /> : <AdminLogin onLoginSuccess={handleAdminLoginSuccess} />} />
+          <Route element={<AdminLayout />}>
+            <Route
+              path="/admin"
+              element={isAdminAuthenticated ? <AdminPanel /> : <Navigate to="/admin/login" />}
+            />
+            <Route
+              path="/admin/login"
+              element={isAdminAuthenticated ? <Navigate to="/admin" /> : <AdminLogin />}
+            />
             <Route path="/admin/blogs" element={isAdminAuthenticated ? <BlogManager /> : <Navigate to="/admin/login" />} />
             <Route path="/admin/cases" element={isAdminAuthenticated ? <CaseManager /> : <Navigate to="/admin/login" />} />
             <Route path="/admin/messages" element={isAdminAuthenticated ? <AdminMessages /> : <Navigate to="/admin/login" />} />

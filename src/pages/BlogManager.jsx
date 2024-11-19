@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { IoArrowBackCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../utils/firebase.config'; // Import Firebase config
+import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 function BlogManager() {
     const [blogs, setBlogs] = useState([]);
@@ -11,30 +13,39 @@ function BlogManager() {
     const [editBlogTitle, setEditBlogTitle] = useState('');
     const [editBlogContent, setEditBlogContent] = useState('');
     const navigate = useNavigate();
+    const blogCollectionRef = collection(db, 'blogs'); // Firestore collection reference
 
-    // Load blogs from localStorage on component mount
+    // Load blogs from Firestore on component mount
     useEffect(() => {
-        const storedBlogs = JSON.parse(localStorage.getItem('blogs')) || [];
-        setBlogs(storedBlogs);
+        const unsubscribe = onSnapshot(blogCollectionRef, (snapshot) => {
+            const blogsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            setBlogs(blogsData);
+        });
+        return () => unsubscribe();
     }, []);
 
-    // Save blogs to localStorage whenever blogs state updates
-    useEffect(() => {
-        localStorage.setItem('blogs', JSON.stringify(blogs));
-    }, [blogs]);
-
-    const handleAddBlog = () => {
+    const handleAddBlog = async () => {
         if (newBlogTitle.trim() && newBlogContent.trim()) {
-            const newBlogItem = { id: Date.now(), title: newBlogTitle, content: newBlogContent };
-            setBlogs([...blogs, newBlogItem]);
-            setNewBlogTitle('');
-            setNewBlogContent('');
+            try {
+                await addDoc(blogCollectionRef, {
+                    title: newBlogTitle,
+                    content: newBlogContent,
+                    timestamp: new Date(),
+                });
+                setNewBlogTitle('');
+                setNewBlogContent('');
+            } catch (error) {
+                console.error('Error adding blog:', error);
+            }
         }
     };
 
-    const handleDeleteBlog = (id) => {
-        const updatedBlogs = blogs.filter((blog) => blog.id !== id);
-        setBlogs(updatedBlogs);
+    const handleDeleteBlog = async (id) => {
+        try {
+            await deleteDoc(doc(blogCollectionRef, id));
+        } catch (error) {
+            console.error('Error deleting blog:', error);
+        }
     };
 
     const handleEditBlog = (blog) => {
@@ -43,17 +54,24 @@ function BlogManager() {
         setEditBlogContent(blog.content);
     };
 
-    const handleUpdateBlog = () => {
-        const updatedBlogs = blogs.map((blog) =>
-            blog.id === editBlogId ? { ...blog, title: editBlogTitle, content: editBlogContent } : blog
-        );
-        setBlogs(updatedBlogs);
-        setEditBlogId(null);
-        setEditBlogTitle('');
-        setEditBlogContent('');
+    const handleUpdateBlog = async () => {
+        try {
+            const blogDocRef = doc(blogCollectionRef, editBlogId);
+            await updateDoc(blogDocRef, {
+                title: editBlogTitle,
+                content: editBlogContent,
+                timestamp: new Date(),
+            });
+            setEditBlogId(null);
+            setEditBlogTitle('');
+            setEditBlogContent('');
+        } catch (error) {
+            console.error('Error updating blog:', error);
+        }
     };
+
     const handleBack = () => {
-        navigate(-1); // Navigate to the previous page in the history stack
+        navigate(-1);
     };
 
     return (
@@ -61,10 +79,7 @@ function BlogManager() {
             <Helmet>
                 <title>EquiLaw | Blog Manager</title>
             </Helmet>
-            <button
-                className="btn btn-circle mb-4 text-4xl"
-                onClick={handleBack} // Add functionality to go back
-            >
+            <button className="btn btn-circle mb-4 text-4xl" onClick={handleBack}>
                 <IoArrowBackCircleOutline />
             </button>
             <h2 className="text-3xl font-bold text-center text-primary mb-8">Manage Blogs</h2>
@@ -84,7 +99,9 @@ function BlogManager() {
                     value={newBlogContent}
                     onChange={(e) => setNewBlogContent(e.target.value)}
                 ></textarea>
-                <button className="btn btn-primary w-full" onClick={handleAddBlog}>Add Blog</button>
+                <button className="btn btn-primary w-full" onClick={handleAddBlog}>
+                    Add Blog
+                </button>
             </div>
 
             {/* Blog List */}
@@ -108,8 +125,12 @@ function BlogManager() {
                                         onChange={(e) => setEditBlogContent(e.target.value)}
                                     ></textarea>
                                     <div className="flex space-x-4">
-                                        <button className="btn btn-primary" onClick={handleUpdateBlog}>Update</button>
-                                        <button className="btn btn-outline" onClick={() => setEditBlogId(null)}>Cancel</button>
+                                        <button className="btn btn-primary" onClick={handleUpdateBlog}>
+                                            Update
+                                        </button>
+                                        <button className="btn btn-outline" onClick={() => setEditBlogId(null)}>
+                                            Cancel
+                                        </button>
                                     </div>
                                 </>
                             ) : (
@@ -117,8 +138,12 @@ function BlogManager() {
                                     <h3 className="card-title text-primary">{blog.title}</h3>
                                     <p>{blog.content}</p>
                                     <div className="flex space-x-4 mt-4">
-                                        <button className="btn btn-secondary" onClick={() => handleEditBlog(blog)}>Edit</button>
-                                        <button className="btn btn-error" onClick={() => handleDeleteBlog(blog.id)}>Delete</button>
+                                        <button className="btn btn-secondary" onClick={() => handleEditBlog(blog)}>
+                                            Edit
+                                        </button>
+                                        <button className="btn btn-error" onClick={() => handleDeleteBlog(blog.id)}>
+                                            Delete
+                                        </button>
                                     </div>
                                 </>
                             )}

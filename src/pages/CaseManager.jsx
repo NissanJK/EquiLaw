@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { IoArrowBackCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import { db } from '../utils/firebase.config';
+import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 function CaseManager() {
     const [cases, setCases] = useState([]);
@@ -11,29 +13,39 @@ function CaseManager() {
     const [editCaseTitle, setEditCaseTitle] = useState('');
     const [editCaseDescription, setEditCaseDescription] = useState('');
     const navigate = useNavigate();
-    // Load cases from localStorage on component mount
+    const caseCollectionRef = collection(db, 'cases');
+
+    // Load cases from Firestore on component mount
     useEffect(() => {
-        const storedCases = JSON.parse(localStorage.getItem('cases')) || [];
-        setCases(storedCases);
+        const unsubscribe = onSnapshot(caseCollectionRef, (snapshot) => {
+            const casesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+            setCases(casesData);
+        });
+        return () => unsubscribe();
     }, []);
 
-    // Save cases to localStorage whenever cases state updates
-    useEffect(() => {
-        localStorage.setItem('cases', JSON.stringify(cases));
-    }, [cases]);
-
-    const handleAddCase = () => {
+    const handleAddCase = async () => {
         if (newCaseTitle.trim() && newCaseDescription.trim()) {
-            const newCaseItem = { id: Date.now(), title: newCaseTitle, description: newCaseDescription };
-            setCases([...cases, newCaseItem]);
-            setNewCaseTitle('');
-            setNewCaseDescription('');
+            try {
+                await addDoc(caseCollectionRef, {
+                    title: newCaseTitle,
+                    description: newCaseDescription,
+                    timestamp: new Date(),
+                });
+                setNewCaseTitle('');
+                setNewCaseDescription('');
+            } catch (error) {
+                console.error('Error adding case:', error);
+            }
         }
     };
 
-    const handleDeleteCase = (id) => {
-        const updatedCases = cases.filter((caseItem) => caseItem.id !== id);
-        setCases(updatedCases);
+    const handleDeleteCase = async (id) => {
+        try {
+            await deleteDoc(doc(caseCollectionRef, id));
+        } catch (error) {
+            console.error('Error deleting case:', error);
+        }
     };
 
     const handleEditCase = (caseItem) => {
@@ -42,33 +54,34 @@ function CaseManager() {
         setEditCaseDescription(caseItem.description);
     };
 
-    const handleUpdateCase = () => {
-        const updatedCases = cases.map((caseItem) =>
-            caseItem.id === editCaseId ? { ...caseItem, title: editCaseTitle, description: editCaseDescription } : caseItem
-        );
-        setCases(updatedCases);
-        setEditCaseId(null);
-        setEditCaseTitle('');
-        setEditCaseDescription('');
+    const handleUpdateCase = async () => {
+        try {
+            const caseDocRef = doc(caseCollectionRef, editCaseId);
+            await updateDoc(caseDocRef, {
+                title: editCaseTitle,
+                description: editCaseDescription,
+                timestamp: new Date(),
+            });
+            setEditCaseId(null);
+            setEditCaseTitle('');
+            setEditCaseDescription('');
+        } catch (error) {
+            console.error('Error updating case:', error);
+        }
     };
 
     const handleBack = () => {
-        navigate(-1); // Navigate to the previous page in the history stack
+        navigate(-1);
     };
 
     return (
         <div className="p-6 bg-base-200 min-h-screen">
             <Helmet>
-                <title>EquiLaw | Cases Manager</title>
+                <title>EquiLaw | Case Manager</title>
             </Helmet>
-
-            <button
-                className="btn btn-circle mb-4 text-4xl"
-                onClick={handleBack} // Add functionality to go back
-            >
+            <button className="btn btn-circle mb-4 text-4xl" onClick={handleBack}>
                 <IoArrowBackCircleOutline />
             </button>
-
             <h2 className="text-3xl font-bold text-center text-primary mb-8">Manage Cases</h2>
 
             {/* Add New Case */}
@@ -86,7 +99,9 @@ function CaseManager() {
                     value={newCaseDescription}
                     onChange={(e) => setNewCaseDescription(e.target.value)}
                 ></textarea>
-                <button className="btn btn-primary w-full" onClick={handleAddCase}>Add Case</button>
+                <button className="btn btn-primary w-full" onClick={handleAddCase}>
+                    Add Case
+                </button>
             </div>
 
             {/* Case List */}
@@ -110,8 +125,12 @@ function CaseManager() {
                                         onChange={(e) => setEditCaseDescription(e.target.value)}
                                     ></textarea>
                                     <div className="flex space-x-4">
-                                        <button className="btn btn-primary" onClick={handleUpdateCase}>Update</button>
-                                        <button className="btn btn-outline" onClick={() => setEditCaseId(null)}>Cancel</button>
+                                        <button className="btn btn-primary" onClick={handleUpdateCase}>
+                                            Update
+                                        </button>
+                                        <button className="btn btn-outline" onClick={() => setEditCaseId(null)}>
+                                            Cancel
+                                        </button>
                                     </div>
                                 </>
                             ) : (
@@ -119,8 +138,12 @@ function CaseManager() {
                                     <h3 className="card-title text-primary">{caseItem.title}</h3>
                                     <p>{caseItem.description}</p>
                                     <div className="flex space-x-4 mt-4">
-                                        <button className="btn btn-secondary" onClick={() => handleEditCase(caseItem)}>Edit</button>
-                                        <button className="btn btn-error" onClick={() => handleDeleteCase(caseItem.id)}>Delete</button>
+                                        <button className="btn btn-secondary" onClick={() => handleEditCase(caseItem)}>
+                                            Edit
+                                        </button>
+                                        <button className="btn btn-error" onClick={() => handleDeleteCase(caseItem.id)}>
+                                            Delete
+                                        </button>
                                     </div>
                                 </>
                             )}

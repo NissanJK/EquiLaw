@@ -14,7 +14,7 @@ const Navbar = ({ isAuthenticated, onLogout }) => {
       <li><NavLink to="/cases" className="btn btn-ghost">Cases</NavLink></li>
       <li><NavLink to="/blog" className="btn btn-ghost">Blog</NavLink></li>
       {isAuthenticated && <li><NavLink to="/contact" className="btn btn-ghost">Contact Us</NavLink></li>}
-      {isAuthenticated && <li><NavLink to="/inbox" className="btn btn-ghost">Inbox</NavLink></li>}
+      {/* {isAuthenticated && <li><NavLink to="/inbox" className="btn btn-ghost">Inbox</NavLink></li>} */}
     </>
   );
 
