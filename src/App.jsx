@@ -4,7 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Cases from './pages/Cases';
 import Blog from './pages/Blog';
-import Inbox from './pages/Inbox';
+// import Inbox from './pages/Inbox';
 import AdminPanel from './pages/AdminPanel';
 import AdminLogin from './pages/AdminLogin';
 import BlogManager from './pages/BlogManager';
@@ -17,6 +17,7 @@ import AdminMessages from './pages/AdminMessages';
 import { auth } from './utils/firebase.config';
 import { onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import ErrorPage from './pages/ErrorPage';
 
 const db = getFirestore();
 
@@ -79,7 +80,7 @@ function App() {
             />
             <Route path="/cases" element={<Cases />} />
             <Route path="/blog" element={<Blog />} />
-            <Route path="/inbox" element={isUserAuthenticated ? <Inbox /> : <Navigate to="/login" />} />
+            {/* <Route path="/inbox" element={isUserAuthenticated ? <Inbox /> : <Navigate to="/login" />} /> */}
             <Route path="/contact" element={isUserAuthenticated ? <ContactUs /> : <Navigate to="/login" />} />
           </Route>
 
@@ -97,6 +98,7 @@ function App() {
             <Route path="/admin/cases" element={isAdminAuthenticated ? <CaseManager /> : <Navigate to="/admin/login" />} />
             <Route path="/admin/messages" element={isAdminAuthenticated ? <AdminMessages /> : <Navigate to="/admin/login" />} />
           </Route>
+          <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>
     </HelmetProvider>
