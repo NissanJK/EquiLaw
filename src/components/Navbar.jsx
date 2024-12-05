@@ -21,7 +21,7 @@ const Navbar = ({ isAuthenticated, onLogout }) => {
   return (
     <div>
       <nav className="navbar bg-base-100 flex justify-between items-center">
-        <div className="navbar bg-base-100 w-11/12 mx-auto my-7 md:my-10 lg:my-14">
+        <div className="navbar bg-base-100 w-11/12 mx-auto">
           <div className="navbar-start">
             <button onClick={toggleDrawer} className="btn btn-outline mr-3 lg:hidden">
               <RiMenu2Line />
