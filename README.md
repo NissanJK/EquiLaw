@@ -64,7 +64,7 @@ EquiLaw is a web-based legal solutions platform designed to connect users with l
 
 4. Start the development server:
    ```bash
-   npm start
+   npm run dev
    ```
 
 5. Open the application in your browser
