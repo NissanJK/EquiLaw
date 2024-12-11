@@ -14,7 +14,6 @@ const Navbar = ({ isAuthenticated, onLogout }) => {
       <li><NavLink to="/cases" className="btn btn-ghost">Cases</NavLink></li>
       <li><NavLink to="/blog" className="btn btn-ghost">Blog</NavLink></li>
       {isAuthenticated && <li><NavLink to="/contact" className="btn btn-ghost">Contact Us</NavLink></li>}
-      {/* {isAuthenticated && <li><NavLink to="/inbox" className="btn btn-ghost">Inbox</NavLink></li>} */}
     </>
   );
 
@@ -49,8 +48,6 @@ const Navbar = ({ isAuthenticated, onLogout }) => {
           </div>
         </div>
       </nav>
-
-      {/* Drawer */}
       <div
         className={`fixed inset-y-0 left-0 w-1/2 bg-base-100 transform ${
           isDrawerOpen ? 'translate-x-0' : '-translate-x-full'
@@ -64,8 +61,6 @@ const Navbar = ({ isAuthenticated, onLogout }) => {
         </button>
         <ul className="menu p-4 text-gray-500">{Links}</ul>
       </div>
-
-      {/* Overlay */}
       {isDrawerOpen && (
         <div
           className="fixed inset-0 bg-black opacity-50 z-40"

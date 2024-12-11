@@ -4,7 +4,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Cases from './pages/Cases';
 import Blog from './pages/Blog';
-// import Inbox from './pages/Inbox';
 import AdminPanel from './pages/AdminPanel';
 import AdminLogin from './pages/AdminLogin';
 import BlogManager from './pages/BlogManager';
@@ -15,7 +14,7 @@ import UserLayout from './layout/UserLayout';
 import { HelmetProvider } from 'react-helmet-async';
 import AdminMessages from './pages/AdminMessages';
 import { auth } from './utils/firebase.config';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import ErrorPage from './pages/ErrorPage';
 
@@ -57,11 +56,18 @@ function App() {
 
     return () => unsubscribe();
   }, []);
-
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsUserAuthenticated(false);
+      setIsAdminAuthenticated(false);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-base-200">
-        {/* Skeleton Spinner */}
         <div className="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary"></div>
       </div>
     );
@@ -72,7 +78,7 @@ function App() {
       <Router>
         <Routes>
           {/* User Layout */}
-          <Route element={<UserLayout isAuthenticated={isUserAuthenticated} />}>
+          <Route element={<UserLayout isAuthenticated={isUserAuthenticated}  onLogout={handleLogout}/>}>
             <Route path="/" element={<Home />} />
             <Route
               path="/login"
@@ -80,12 +86,11 @@ function App() {
             />
             <Route path="/cases" element={<Cases />} />
             <Route path="/blog" element={<Blog />} />
-            {/* <Route path="/inbox" element={isUserAuthenticated ? <Inbox /> : <Navigate to="/login" />} /> */}
             <Route path="/contact" element={isUserAuthenticated ? <ContactUs /> : <Navigate to="/login" />} />
           </Route>
 
           {/* Admin Layout */}
-          <Route element={<AdminLayout />}>
+          <Route element={<AdminLayout onLogout={handleLogout} />}>
             <Route
               path="/admin"
               element={isAdminAuthenticated ? <AdminPanel /> : <Navigate to="/admin/login" />}

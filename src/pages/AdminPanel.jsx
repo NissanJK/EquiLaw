@@ -1,11 +1,12 @@
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import { Link, useOutletContext } from 'react-router-dom';
 
-function AdminPanel({ onLogout }) {
+function AdminPanel() {
+  const { onLogout } = useOutletContext();
   return (
     <div className="min-h-screen bg-base-200 flex flex-col items-center">
       <Helmet>
-        <title>EquiLaw | Dashboard</title>
+        <title>EquiLaw | Admin Dashboard</title>
       </Helmet>
       <div className="card w-full max-w-xl bg-base-100 shadow-lg p-6 mt-10">
         <h2 className="text-3xl font-bold text-primary text-center mb-8">Admin Dashboard</h2>
