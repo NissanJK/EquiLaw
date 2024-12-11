@@ -77,8 +77,8 @@ src/
 ├── layout/          # Layout components (Admin/User layouts)
 ├── pages/           # Page components for routes
 ├── utils/           # Firebase configuration and utilities
-├── App.js           # Main application component
-├── index.js         # Entry point
+├── App.jsx          # Main application component
+├── main.jsx         # Entry point
 ```
 
 ## Usage
@@ -91,20 +91,31 @@ src/
 2. Manage blogs, cases, and messages via the dashboard.
 
 ## Interface
-Add screenshots for better visualization:
+
 - **User Interface**
+
 ![HomePage](./public/images/screenshot/user_homepage.png)
+
 ![Blogs](./public/images/screenshot/user_blog_interface.png)
+
 ![Cases](./public/images/screenshot/user_cases_interface.png)
+
 ![Login](./public/images/screenshot/user_login.png)
+
 ![Register](./public/images/screenshot/user_registration.png)
+
 ![Contact Us](./public/images/screenshot/user_message_interface.png)
 
 - **Admin Interface**
+
 ![Admin Login](./public/images/screenshot/admin_login.png)
+
 ![Admin Dashboard](./public/images/screenshot/admin_dashboard.png)
+
 ![Manage Blogs](./public/images/screenshot/admin_blog_interface.png)
+
 ![Manage Cases](./public/images/screenshot/admin_case_interface.png)
+
 ![User Messages](./public/images/screenshot/admin_reply_interface.png)
 
 ## Future Enhancements
