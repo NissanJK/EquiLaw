@@ -29,7 +29,6 @@ function App() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
-          // Fetch role from Firestore
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           const userData = userDoc.data();
 

@@ -5,8 +5,6 @@ import { db } from '../utils/firebase.config';
 
 function Cases() {
     const [cases, setCases] = useState([]);
-
-    // Load cases from Firestore on component mount
     useEffect(() => {
         const caseCollectionRef = collection(db, 'cases');
         const unsubscribe = onSnapshot(caseCollectionRef, (snapshot) => {

@@ -14,8 +14,6 @@ function CaseManager() {
     const [editCaseDescription, setEditCaseDescription] = useState('');
     const navigate = useNavigate();
     const caseCollectionRef = collection(db, 'cases');
-
-    // Load cases from Firestore on component mount
     useEffect(() => {
         const unsubscribe = onSnapshot(caseCollectionRef, (snapshot) => {
             const casesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -84,7 +82,6 @@ function CaseManager() {
             </button>
             <h2 className="text-3xl font-bold text-center text-primary mb-8">Manage Cases</h2>
 
-            {/* Add New Case */}
             <div className="card shadow-lg bg-base-100 p-6 mb-8">
                 <input
                     type="text"
@@ -104,7 +101,6 @@ function CaseManager() {
                 </button>
             </div>
 
-            {/* Case List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {cases.map((caseItem) => (
                     <div key={caseItem.id} className="card shadow-lg bg-base-100 p-4">

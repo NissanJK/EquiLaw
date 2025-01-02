@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { toast, ToastContainer } from 'react-toastify';
+import Swal from 'sweetalert2';
 import { collection, addDoc, onSnapshot, query, where, orderBy, deleteDoc, getDocs } from 'firebase/firestore';
 import { auth, db } from '../utils/firebase.config';
-import 'react-toastify/dist/ReactToastify.css';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const ContactUs = () => {
     const [subject, setSubject] = useState('');
@@ -14,17 +14,15 @@ const ContactUs = () => {
 
     useEffect(() => {
         if (!userEmail) {
-            toast.error('No logged-in user found. Please log in first.');
+            Swal.fire('Error', 'No logged-in user found. Please log in first.', 'error');
             return;
         }
 
-        // Set user details
         setUserDetails({
             name: auth.currentUser.displayName || userEmail.split('@')[0],
             email: userEmail,
         });
 
-        // Fetch messages from this user
         const userMessagesQuery = query(
             collection(db, 'contactMessages'),
             where('email', '==', userEmail),
@@ -40,7 +38,7 @@ const ContactUs = () => {
 
     const handleSendMessage = async () => {
         if (!subject || !message) {
-            toast.error('Please fill in all fields.');
+            Swal.fire('Error', 'Please fill in all fields.', 'error');
             return;
         }
 
@@ -51,23 +49,34 @@ const ContactUs = () => {
                 subject,
                 message,
                 timestamp: new Date(),
-                response: '', // Placeholder for admin response
+                response: '', 
             });
 
-            toast.success('Your message has been sent successfully!');
+            Swal.fire('Success', 'Your message has been sent successfully!', 'success');
             setSubject('');
             setMessage('');
         } catch (error) {
             console.error('Error sending message:', error);
-            toast.error('Failed to send your message. Please try again.');
+            Swal.fire('Error', 'Failed to send your message. Please try again.', 'error');
         }
     };
 
     const handleClearMessages = async () => {
         if (!userEmail) {
-            toast.error('No logged-in user found.');
+            Swal.fire('Error', 'No logged-in user found.', 'error');
             return;
         }
+
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'This action will clear all your messages and replies, and it cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete all!',
+            cancelButtonText: 'Cancel',
+        });
+
+        if (!result.isConfirmed) return;
 
         try {
             const userMessagesQuery = query(
@@ -80,10 +89,10 @@ const ContactUs = () => {
             await Promise.all(deletePromises);
 
             setMessages([]);
-            toast.success('All messages and replies have been cleared.');
+            Swal.fire('Success', 'All messages and replies have been cleared.', 'success');
         } catch (error) {
             console.error('Error clearing messages:', error);
-            toast.error('Failed to clear messages. Please try again.');
+            Swal.fire('Error', 'Failed to clear messages. Please try again.', 'error');
         }
     };
 
@@ -95,7 +104,6 @@ const ContactUs = () => {
             <section className="p-5 lg:flex w-11/12 mx-auto justify-between gap-8">
                 <div className='lg:w-1/2'>
                     <h1 className="text-2xl font-bold mb-5">Contact Us</h1>
-                    {/* Form Section */}
                     <input
                         type="text"
                         placeholder="Subject"
@@ -113,9 +121,6 @@ const ContactUs = () => {
                         Send Message
                     </button>
                 </div>
-
-
-                {/* Display Messages */}
                 <div className="mt-5 lg:mt-0 lg:w-1/2">
                     <h2 className="text-2xl font-bold mb-5">Messages Sent</h2>
                     
@@ -138,14 +143,12 @@ const ContactUs = () => {
                     ) : (
                         <p className="text-gray-500">You have no messages.</p>
                     )}
-                    {/* Clear Messages Button */}
                     <button className="btn btn-danger w-full mt-5" onClick={handleClearMessages}>
                         Clear All Messages and Replies
                     </button>
                 </div>
 
             </section>
-            <ToastContainer />
         </div>
     );
 };

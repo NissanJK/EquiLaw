@@ -1,48 +1,54 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { toast, ToastContainer } from 'react-toastify';
-import { signInWithEmailAndPassword } from 'firebase/auth'; // Firebase Authentication
-import { auth } from '../utils/firebase.config'; // Firebase Config
-import { getFirestore, doc, getDoc } from 'firebase/firestore'; // Firestore Functions
-import 'react-toastify/dist/ReactToastify.css';
+import Swal from 'sweetalert2';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../utils/firebase.config';
+import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const db = getFirestore();
 
-function AdminLogin({ onLoginSuccess }) {
+function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const onLoginSuccess = (role) => {
+    Swal.fire({
+      icon: 'success',
+      title: `Login successful as ${role}`,
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
-      toast.error('Please enter both email and password');
+      Swal.fire('Error', 'Please enter both email and password', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      // Sign in using Firebase Authentication
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Fetch user role from Firestore
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (userDoc.exists()) {
         const { role } = userDoc.data();
         if (role === 'admin') {
-          toast.success('Admin login successful');
-          onLoginSuccess(); // Notify parent component of successful login
+          Swal.fire('Success', 'Admin login successful', 'success');
+          onLoginSuccess(role);
         } else {
-          toast.error('Unauthorized access: Admins only');
-          await auth.signOut(); // Log out the non-admin user
+          Swal.fire('Error', 'Unauthorized access: Admins only', 'error');
+          await auth.signOut();
         }
       } else {
-        toast.error('User role not found');
-        await auth.signOut(); // Log out the user
+        Swal.fire('Error', 'User role not found', 'error');
+        await auth.signOut();
       }
     } catch (error) {
       console.error('Login failed:', error);
-      toast.error('Invalid admin credentials');
+      Swal.fire('Error', 'Invalid admin credentials', 'error');
     } finally {
       setLoading(false);
     }
@@ -79,8 +85,6 @@ function AdminLogin({ onLoginSuccess }) {
         >
           Login
         </button>
-
-        <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} />
       </div>
     </div>
   );

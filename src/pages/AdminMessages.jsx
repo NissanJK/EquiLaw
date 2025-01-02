@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { IoArrowBackCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
+import Swal from 'sweetalert2';
 import { collection, onSnapshot, updateDoc, doc, orderBy, query, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from '../utils/firebase.config';
-import 'react-toastify/dist/ReactToastify.css';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const AdminMessages = () => {
     const [messages, setMessages] = useState([]);
@@ -25,7 +25,7 @@ const AdminMessages = () => {
 
     const handleReply = async () => {
         if (!adminReply.trim() || !selectedMessage) {
-            toast.error('Please enter a reply and select a message.');
+            Swal.fire('Error', 'Please enter a reply and select a message.', 'error');
             return;
         }
 
@@ -33,19 +33,26 @@ const AdminMessages = () => {
             const messageDoc = doc(db, 'contactMessages', selectedMessage.id);
             await updateDoc(messageDoc, { response: adminReply });
             setAdminReply('');
-            toast.success('Reply sent successfully!');
+            Swal.fire('Success', 'Reply sent successfully!', 'success');
         } catch (error) {
             console.error('Error sending reply:', error);
-            toast.error('Failed to send reply. Please try again.');
+            Swal.fire('Error', 'Failed to send reply. Please try again.', 'error');
         }
     };
 
     const handleClearMessages = async () => {
-        try {
-            if (!window.confirm('Are you sure you want to delete all messages? This action cannot be undone.')) {
-                return;
-            }
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: 'This action will clear all messages, and it cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete all!',
+            cancelButtonText: 'Cancel',
+        });
 
+        if (!result.isConfirmed) return;
+
+        try {
             const querySnapshot = await getDocs(collection(db, 'contactMessages'));
             const batch = writeBatch(db);
 
@@ -55,10 +62,10 @@ const AdminMessages = () => {
 
             await batch.commit();
             setMessages([]);
-            toast.success('All messages cleared successfully!');
+            Swal.fire('Success', 'All messages cleared successfully!', 'success');
         } catch (error) {
             console.error('Error clearing messages:', error);
-            toast.error('Failed to clear messages. Please try again.');
+            Swal.fire('Error', 'Failed to clear messages. Please try again.', 'error');
         }
     };
 
@@ -76,9 +83,7 @@ const AdminMessages = () => {
                 {messages.map((msg) => (
                     <div
                         key={msg.id}
-                        className={`p-4 border rounded cursor-pointer ${
-                            selectedMessage?.id === msg.id ? 'bg-gray-300 text-gray-700' : ''
-                        }`}
+                        className={`p-4 border rounded cursor-pointer ${selectedMessage?.id === msg.id ? 'bg-gray-300 text-gray-700' : ''}`}
                         onClick={() => setSelectedMessage(msg)}
                     >
                         <p><strong>User Email:</strong> {msg.email}</p>
@@ -109,8 +114,6 @@ const AdminMessages = () => {
             <button className="btn btn-danger w-full mt-5" onClick={handleClearMessages}>
                 Clear All Messages
             </button>
-
-            <ToastContainer />
         </div>
     );
 };

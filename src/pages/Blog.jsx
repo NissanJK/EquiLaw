@@ -5,8 +5,6 @@ import { db } from '../utils/firebase.config';
 
 function Blog() {
     const [blogs, setBlogs] = useState([]);
-
-    // Load blogs from Firestore on component mount
     useEffect(() => {
         const blogCollectionRef = collection(db, 'blogs');
         const unsubscribe = onSnapshot(blogCollectionRef, (snapshot) => {

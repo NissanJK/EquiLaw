@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { IoArrowBackCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../utils/firebase.config'; // Import Firebase config
+import { db } from '../utils/firebase.config'; 
 import { collection, addDoc, deleteDoc, doc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 function BlogManager() {
@@ -13,9 +13,7 @@ function BlogManager() {
     const [editBlogTitle, setEditBlogTitle] = useState('');
     const [editBlogContent, setEditBlogContent] = useState('');
     const navigate = useNavigate();
-    const blogCollectionRef = collection(db, 'blogs'); // Firestore collection reference
-
-    // Load blogs from Firestore on component mount
+    const blogCollectionRef = collection(db, 'blogs');
     useEffect(() => {
         const unsubscribe = onSnapshot(blogCollectionRef, (snapshot) => {
             const blogsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
@@ -84,7 +82,6 @@ function BlogManager() {
             </button>
             <h2 className="text-3xl font-bold text-center text-primary mb-8">Manage Blogs</h2>
 
-            {/* Add New Blog */}
             <div className="card shadow-lg bg-base-100 p-6 mb-8">
                 <input
                     type="text"
@@ -103,8 +100,6 @@ function BlogManager() {
                     Add Blog
                 </button>
             </div>
-
-            {/* Blog List */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {blogs.map((blog) => (
                     <div key={blog.id} className="card shadow-lg bg-base-100 p-4">

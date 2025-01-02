@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { toast, ToastContainer } from 'react-toastify';
+import Swal from 'sweetalert2';
 import { auth } from '../utils/firebase.config';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore'; // Firestore functions
-import 'react-toastify/dist/ReactToastify.css';
+import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const db = getFirestore();
 
-const Login = ({ onLoginSuccess }) => {
+const Login = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,34 +27,38 @@ const Login = ({ onLoginSuccess }) => {
   const validatePassword = (password) =>
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
 
+  const onLoginSuccess = (role) => {
+    Swal.fire({
+      icon: 'success',
+      title: `Login successful as ${role}`,
+      showConfirmButton: false,
+      timer: 1500,
+    });
+  };
+
   const handleLogin = async () => {
     if (!validateEmail(email)) {
-      toast.error('Please enter a valid email.');
+      Swal.fire('Error', 'Please enter a valid email.', 'error');
       return;
     }
     if (!password) {
-      toast.error('Please enter your password.');
+      Swal.fire('Error', 'Please enter your password.', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      // Authenticate with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Retrieve the user’s role from Firestore
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       if (userDoc.exists()) {
         const { role } = userDoc.data();
-        toast.success(`Login successful as ${role}`);
-        onLoginSuccess(role); // Pass role to parent component
+        onLoginSuccess(role);
       } else {
         throw new Error('User role not found');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error('Invalid email, password, or missing role.');
+      Swal.fire('Error', 'Invalid email, password, or missing role.', 'error');
     } finally {
       setLoading(false);
     }
@@ -62,35 +66,35 @@ const Login = ({ onLoginSuccess }) => {
 
   const handleRegister = async () => {
     if (!validateEmail(email)) {
-      toast.error('Please enter a valid email.');
+      Swal.fire('Error', 'Please enter a valid email.', 'error');
       return;
     }
     if (!validatePassword(password)) {
-      toast.error(
-        'Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.'
-      );
+      Swal.fire('Error', 'Password must be at least 8 characters long, include uppercase, lowercase, number, and special character.', 'error');
       return;
     }
     if (password !== confirmPass) {
-      toast.error('Passwords do not match.');
+      Swal.fire('Error', 'Passwords do not match.', 'error');
       return;
     }
 
     setLoading(true);
     try {
-      // Register with Firebase Authentication
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Add user role to Firestore
-      const defaultRole = 'user'; // Default role for new users
+      const defaultRole = 'user';
       await setDoc(doc(db, 'users', user.uid), { email, role: defaultRole });
 
-      toast.success('Registration successful!');
-      toggleRegister(); // Redirect to login after successful registration
+      Swal.fire({
+        icon: 'success',
+        title: 'Registration successful!',
+        showConfirmButton: false,
+        timer: 1500,
+      });
+      toggleRegister();
     } catch (error) {
-      console.error('Registration error:', error);
-      toast.error('Error during registration. Try a different email.');
+      Swal.fire('Error', 'Error during registration. Try a different email.', 'error');
     } finally {
       setLoading(false);
     }
@@ -156,7 +160,6 @@ const Login = ({ onLoginSuccess }) => {
           )}
         </p>
       </div>
-      <ToastContainer position="top-center" autoClose={3000} hideProgressBar={false} />
     </div>
   );
 };

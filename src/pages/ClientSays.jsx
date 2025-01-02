@@ -42,16 +42,14 @@ const ClientSays = () => {
 
     const [currentSlide, setCurrentSlide] = useState(0);
 
-    // Function to change slides automatically
     useEffect(() => {
         const interval = setInterval(() => {
             setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
-        }, 5000); // Change slide every 5 seconds
+        }, 5000);
 
-        return () => clearInterval(interval); // Cleanup on unmount
+        return () => clearInterval(interval);
     }, [slides.length]);
 
-    // Handle manual navigation
     const handleNext = () => {
         setCurrentSlide((prevSlide) => (prevSlide + 1) % slides.length);
     };
@@ -71,8 +69,6 @@ const ClientSays = () => {
                         preferred legal partner for individuals and businesses alike.
                     </p>
                 </div>
-
-                {/* Carousel */}
                 <div className="relative">
                     <div className="carousel w-full bg-gradient-to-b from-slate-100 to-slate-800 overflow-hidden rounded-xl">
                         {slides.map((slide, index) => (
@@ -105,8 +101,6 @@ const ClientSays = () => {
                             </div>
                         ))}
                     </div>
-
-                    {/* Navigation buttons */}
                     <div className="absolute left-5 right-5 top-10 flex -translate-y-1/2 transform justify-between">
                         <button
                             className="btn btn-circle bg-transparent border-0 text-3xl text-white"
